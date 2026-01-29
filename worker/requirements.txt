@@ -1,0 +1,13 @@
+sqlalchemy
+asyncpg
+greenlet
+apscheduler
+trafilatura
+beautifulsoup4
+httpx
+lxml
+feedparser
+python-dateutil
+pydantic
+pydantic-settings
+playwright
