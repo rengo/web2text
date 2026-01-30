@@ -5,6 +5,20 @@ from pydantic import BaseModel, HttpUrl, Field
 
 from shared.core.models import CrawlStrategy, PageStatus, DiscoverySource
 
+
+# --- Auth Schemas ---
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
 # --- Site Schemas ---
 
 class SiteBase(BaseModel):

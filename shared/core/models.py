@@ -15,6 +15,14 @@ class CrawlStrategy(str, Enum):
     RSS = "rss"
     LINKS = "links"
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
 class PageStatus(str, Enum):
     NEW = "new"
     PROCESSED = "processed"

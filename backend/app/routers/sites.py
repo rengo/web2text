@@ -6,8 +6,9 @@ from uuid import UUID
 import json
 
 from shared.core import models, schemas, database
+from backend.app import auth
 
-router = APIRouter(prefix="/sites", tags=["sites"])
+router = APIRouter(prefix="/sites", tags=["sites"], dependencies=[Depends(auth.get_current_user)])
 
 @router.post("/", response_model=schemas.SiteRead)
 async def create_site(site: schemas.SiteCreate, db: AsyncSession = Depends(database.get_db)):

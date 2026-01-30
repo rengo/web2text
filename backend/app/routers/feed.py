@@ -6,8 +6,9 @@ from datetime import datetime
 from uuid import UUID
 
 from shared.core import models, schemas, database
+from backend.app import auth
 
-router = APIRouter(prefix="/feed", tags=["feed"])
+router = APIRouter(prefix="/feed", tags=["feed"], dependencies=[Depends(auth.get_current_user)])
 
 @router.get("/new", response_model=List[schemas.PageDetail])
 async def get_new_feed(

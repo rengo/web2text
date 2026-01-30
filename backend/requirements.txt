@@ -9,3 +9,5 @@ pydantic-settings
 httpx
 python-multipart
 websockets
+passlib[bcrypt]
+python-jose[cryptography]

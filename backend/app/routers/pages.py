@@ -6,8 +6,9 @@ from uuid import UUID
 from datetime import datetime
 
 from shared.core import models, schemas, database
+from backend.app import auth
 
-router = APIRouter(prefix="/pages", tags=["pages"])
+router = APIRouter(prefix="/pages", tags=["pages"], dependencies=[Depends(auth.get_current_user)])
 
 @router.get("/", response_model=List[schemas.PageRead])
 async def read_pages(

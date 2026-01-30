@@ -1,12 +1,39 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 import SiteList from './components/SiteList';
 import Feed from './components/Feed';
 import Sidebar from './components/Sidebar';
 import LogViewer from './components/LogViewer';
 import Settings from './components/Settings';
+import Login from './components/Login';
+import { checkAuth, logout } from './api';
 
 function App() {
     const location = useLocation();
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+    const authChecked = useRef(false);
+
+    useEffect(() => {
+        if (authChecked.current) return;
+        authChecked.current = true;
+
+        checkAuth().then(user => {
+            setIsAuthenticated(!!user);
+        });
+    }, []);
+
+    if (isAuthenticated === null) {
+        return null; // Loading state
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <Routes>
+                <Route path="*" element={<Login />} />
+            </Routes>
+        );
+    }
 
     const getPageDetails = () => {
         switch (location.pathname) {
@@ -28,10 +55,7 @@ function App() {
 
     return (
         <div className="flex min-h-screen bg-[#F8FAFC]">
-            {/* Sidebar Navigation */}
             <Sidebar />
-
-            {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0">
                 <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 px-8 flex items-center justify-between">
                     <div>
@@ -48,9 +72,19 @@ function App() {
                             <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
                             <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight">Live Session</span>
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
-                            <span className="text-white font-black text-sm">PA</span>
-                        </div>
+                        <button
+                            className="w-10 h-10 bg-white hover:bg-slate-50 text-slate-400 hover:text-red-500 border border-slate-200 rounded-2xl flex items-center justify-center transition-all shadow-sm hover:shadow-md cursor-pointer group"
+                            onClick={async () => {
+                                await logout();
+                                localStorage.removeItem('token');
+                                window.location.reload();
+                            }}
+                            title="Logout"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 group-hover:translate-x-0.5 transition-transform">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                            </svg>
+                        </button>
                     </div>
                 </header>
 
@@ -62,6 +96,7 @@ function App() {
                             <Route path="/sites" element={<SiteList />} />
                             <Route path="/logs" element={<LogViewer />} />
                             <Route path="/settings" element={<Settings />} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </div>
                 </main>

@@ -48,6 +48,30 @@ async def seed():
             if not result.scalar_one_or_none():
                 print(f"Creating setting: {s.key}")
                 db.add(s)
+
+        # Seed User
+        # result = await db.execute(select(models.User).where(models.User.username == "pablo"))
+        # Using a raw select or relying on the model if available.
+        # Since I just added the model, it should be available via models.User
+        
+        result = await db.execute(select(models.User).where(models.User.username == "pablo"))
+        user = result.scalar_one_or_none()
+        if not user:
+            print("Creating user: pablo")
+            # We need to import get_password_hash. 
+            # Doing local import to avoid issues if deps are missing during file parsing (though unlikely in python)
+            from backend.app.auth import get_password_hash
+            new_user = models.User(
+                username="pablo",
+                hashed_password=get_password_hash("123456"),
+                is_active=True
+            )
+            db.add(new_user)
+        else:
+            print("User exists: pablo - Updating password to match current scheme")
+            from backend.app.auth import get_password_hash
+            user.hashed_password = get_password_hash("123456")
+            db.add(user)
         
         await db.commit()
         print("Seed completed.")

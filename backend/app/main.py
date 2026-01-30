@@ -1,6 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.routers import sites, pages, feed, settings
+from backend.app.routers import sites, pages, feed, settings, auth
 import asyncio
 import asyncpg
 import json
@@ -13,9 +13,13 @@ logger = logging.getLogger("backend")
 
 app = FastAPI(title="Web2Text Scraper API")
 
+import os
+
+# ...
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:3005").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,6 +29,7 @@ app.include_router(sites.router)
 app.include_router(pages.router)
 app.include_router(feed.router)
 app.include_router(settings.router)
+app.include_router(auth.router)
 
 class ConnectionManager:
     def __init__(self):

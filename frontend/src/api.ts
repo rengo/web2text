@@ -1,32 +1,88 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+async function request(endpoint: string, options: RequestInit = {}) {
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+    };
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+        credentials: 'include'
+    });
+
+    if (response.status === 401) {
+        // We don't reload here automatically to avoid infinite loops if checkAuth fails
+        // But throwing allows the caller to handle it
+        throw new Error("Unauthorized");
+    }
+
+    return response;
+}
+
+export async function login(username: string, password: string) {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
+
+    // Login endpoint sets the cookie
+    const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+
+    if (!res.ok) {
+        throw new Error('Login failed');
+    }
+    return res.json();
+}
+
+export async function logout() {
+    await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+}
+
+export async function checkAuth() {
+    try {
+        const res = await request('/auth/me');
+        if (res.ok) {
+            return await res.json();
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
 export async function fetchSites() {
-    const res = await fetch(`${API_URL}/sites/`);
+    const res = await request('/sites/');
     return res.json();
 }
 
 export async function fetchFeed(since: string, siteId?: string) {
-    let url = `${API_URL}/feed/new?since=${since}&limit=50`;
+    let url = `/feed/new?since=${since}&limit=50`;
     if (siteId) {
         url += `&site_id=${siteId}`;
     }
-    const res = await fetch(url);
+    const res = await request(url);
     return res.json();
 }
 
 export async function createSite(site: any) {
-    const res = await fetch(`${API_URL}/sites/`, {
+    const res = await request('/sites/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(site)
     });
     return res.json();
 }
 
 export async function toggleSite(id: string, enabled: boolean) {
-    const res = await fetch(`${API_URL}/sites/${id}`, {
+    const res = await request(`/sites/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled })
     });
     return res.json();

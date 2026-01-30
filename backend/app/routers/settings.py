@@ -4,8 +4,9 @@ from sqlalchemy import select
 from shared.core import database, models
 from pydantic import BaseModel
 from typing import List
+from backend.app import auth
 
-router = APIRouter(prefix="/settings", tags=["settings"])
+router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[Depends(auth.get_current_user)])
 
 class SettingBase(BaseModel):
     key: str
