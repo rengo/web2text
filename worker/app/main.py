@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from shared.core import database, models
 from worker.app.scraper import ScraperEngine
@@ -52,7 +53,8 @@ async def process_site(db, site):
         await scraper.run_discovery_phase(db, site, run.id)
         
         # Processing
-        await scraper.run_processing_phase(db, site, run.id, limit=50)
+        pages_per_run = int(os.getenv("PAGES_PER_RUN", 200))
+        await scraper.run_processing_phase(db, site, run.id, limit=pages_per_run)
         
     except Exception as e:
         logger.error(f"Error processing site {site.name}: {e}")

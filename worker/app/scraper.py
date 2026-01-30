@@ -88,7 +88,7 @@ class ScraperEngine:
         )
         await db.commit()
 
-    async def run_processing_phase(self, db, site: models.Site, run_id, limit=50):
+    async def run_processing_phase(self, db, site: models.Site, run_id, limit=200):
         """
         Process NEW pages.
         """

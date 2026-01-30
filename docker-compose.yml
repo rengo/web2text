@@ -46,7 +46,7 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/web2text
       - SCRAPE_INTERVAL_SECONDS=600
-      - PAGES_PER_RUN=50
+      - PAGES_PER_RUN=200
       - MAX_RETRIES=2
       - REFRESH_EXISTING=true
     depends_on:
