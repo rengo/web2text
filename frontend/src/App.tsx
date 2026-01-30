@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import LogViewer from './components/LogViewer';
 import Settings from './components/Settings';
 import Login from './components/Login';
+import ApiKeys from './components/ApiKeys';
 import { checkAuth, logout } from './api';
 
 function App() {
@@ -46,6 +47,8 @@ function App() {
                 return { title: 'System Logs', subtitle: 'Live worker events' };
             case '/settings':
                 return { title: 'Global Configuration', subtitle: 'System-wide settings' };
+            case '/api-keys':
+                return { title: 'API Keys', subtitle: 'Manage access tokens' };
             default:
                 return { title: 'Dashboard', subtitle: 'Monitoring' };
         }
@@ -96,6 +99,7 @@ function App() {
                             <Route path="/sites" element={<SiteList />} />
                             <Route path="/logs" element={<LogViewer />} />
                             <Route path="/settings" element={<Settings />} />
+                            <Route path="/api-keys" element={<ApiKeys />} />
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </div>

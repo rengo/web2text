@@ -30,6 +30,48 @@ app.include_router(pages.router)
 app.include_router(feed.router)
 app.include_router(settings.router)
 app.include_router(auth.router)
+from backend.app.routers import public, api_keys
+app.include_router(public.router)
+app.include_router(api_keys.router)
+
+from fastapi.openapi.utils import get_openapi
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    openapi_schema = get_openapi(
+        title="Web2Text Public API" if os.getenv("ENVIRONMENT") == "production" else "Web2Text Scraper API",
+        version="1.0.0",
+        description="Public API for content consumption" if os.getenv("ENVIRONMENT") == "production" else "Full Scraper API Documentation",
+        routes=app.routes,
+    )
+    
+    # Logic to filter schema in production
+    if os.getenv("ENVIRONMENT") == "production":
+        paths = openapi_schema.get("paths", {})
+        public_paths = {}
+        
+        for path, methods in paths.items():
+            new_methods = {}
+            for method, details in methods.items():
+                # Only include endpoints with the 'public' tag
+                if "public" in details.get("tags", []):
+                    new_methods[method] = details
+            
+            if new_methods:
+                public_paths[path] = new_methods
+        
+        openapi_schema["paths"] = public_paths
+        
+        # Clean up tags metadata
+        if "tags" in openapi_schema:
+            openapi_schema["tags"] = [t for t in openapi_schema["tags"] if t["name"] == "public"]
+            
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 class ConnectionManager:
     def __init__(self):
