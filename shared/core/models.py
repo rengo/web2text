@@ -88,6 +88,10 @@ class Page(Base):
     http_status: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     
     title: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    author: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    image_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    language: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     published_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)  # REAL publication date
     
     content_hash: Mapped[Optional[str]] = mapped_column(String, nullable=True)

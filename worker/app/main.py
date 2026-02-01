@@ -58,23 +58,30 @@ async def process_site(db, site):
         
     except Exception as e:
         logger.error(f"Error processing site {site.name}: {e}")
+        await db.rollback()
         await remote_logger.log(f"Error processing site {site.name}: {e}", level="error", extra={"site_id": site.id})
 
 async def scrape_job():
     logger.info("Starting scheduled scrape job...")
     await remote_logger.log("Starting scheduled scrape job...", level="info")
     
-    async with database.AsyncSessionLocal() as db:
-        # Get enabled sites
-        result = await db.execute(select(models.Site).where(models.Site.enabled == True))
-        sites = result.scalars().all()
-        
-        if not sites:
-            await remote_logger.log("No enabled sites found.", level="warning")
-            return
+    try:
+        async with database.AsyncSessionLocal() as db:
+            # Get enabled sites
+            result = await db.execute(select(models.Site).where(models.Site.enabled == True))
+            sites = result.scalars().all()
+            
+            if not sites:
+                await remote_logger.log("No enabled sites found.", level="warning")
+                return
 
-        for site in sites:
-            await process_site(db, site)
+            for site in sites:
+                await process_site(db, site)
+    except Exception as e:
+        logger.error(f"Error in scheduled scrape job: {e}")
+        # Note: if the error is here, db might not be defined or already closed
+        # but process_site has its own rollback.
+        await remote_logger.log(f"Error in scheduled scrape job: {e}", level="error")
 
     await remote_logger.log("Scheduled scrape job finished.", level="info")
 

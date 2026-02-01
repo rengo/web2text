@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import json
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -29,6 +30,56 @@ class ScraperEngine:
                 logger.info(f"ScraperEngine: Lookback days updated to {self.lookback_days}")
         except Exception as e:
             logger.error(f"Error reloading scraper settings: {e}")
+
+    def _is_valid_article(self, html: str) -> bool:
+        """
+        Parses HTML for JSON-LD and checks if @type is NewsArticle, Article, BlogPosting, or Report.
+        Returns True if a valid article type is found, False otherwise.
+        """
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            scripts = soup.find_all('script', type='application/ld+json')
+            
+            valid_types = {'NewsArticle', 'Article', 'BlogPosting', 'Report'}
+            
+            for script in scripts:
+                if not script.string:
+                    continue
+                try:
+                    data = json.loads(script.string)
+                    # JSON-LD can be a list or a dict
+                    if isinstance(data, dict):
+                        data = [data]
+                    
+                    for item in data:
+                        # item can be a dict, or we might need to look deeper if it's a graph
+                        # Simple flat check first
+                        item_type = item.get('@type')
+                        
+                        # Handle list of types
+                        if isinstance(item_type, list):
+                            if any(t in valid_types for t in item_type):
+                                return True
+                        elif item_type in valid_types:
+                            return True
+                            
+                        # Handle @graph structure (often used by Yoast etc)
+                        if '@graph' in item:
+                            for node in item['@graph']:
+                                node_type = node.get('@type')
+                                if isinstance(node_type, list):
+                                    if any(t in valid_types for t in node_type):
+                                        return True
+                                elif node_type in valid_types:
+                                    return True
+                except json.JSONDecodeError:
+                    continue
+                    
+            return False
+        except Exception as e:
+            logger.error(f"Error validating article JSON-LD: {e}")
+            return False
+
 
     async def run_discovery_phase(self, db, site: models.Site, run_id):
         """
@@ -157,6 +208,18 @@ class ScraperEngine:
             return
 
         html = resp.text
+        
+        # --- JSON-LD FILTER ---
+        if not self._is_valid_article(html):
+            logger.info(f"Skipping {page.url}: Not a valid article (JSON-LD check failed)")
+            await remote_logger.log(f"Skipping {page.url}: Not a valid article", level="info", extra={"site_id": site_id, "url": page.url})
+            page.status = models.PageStatus.SKIPPED
+            page.error = "Filtered: Not an article (JSON-LD)"
+            db.add(page)
+            await db.commit()
+            return
+        # ---------------------
+
         soup = BeautifulSoup(html, 'html.parser')
 
         # 1. Date Extraction
@@ -182,8 +245,11 @@ class ScraperEngine:
         # 2. Content Extraction
         text, method_used = ContentExtractor.extract(html)
         
-        # 3. Metadata
-        title = soup.title.string if soup.title else None
+        # 3. Metadata Extraction
+        from worker.app.metadata_extractor import MetadataExtractor
+        meta = MetadataExtractor.extract(html, soup)
+        
+        title = meta.get("title") or (soup.title.string if soup.title else None)
         
         content_hash = utils.compute_content_hash(text)
         
@@ -191,12 +257,13 @@ class ScraperEngine:
         new_content = models.PageContent(
             page_id=page.id,
             extracted_text=text,
-            raw_html=None,
+            raw_html=html,
             metadata_={
                 "date_source": date_source,
                 "date_confidence": conf,
                 "extraction_method": method_used,
-                "og_title": title
+                "og_title": title,
+                "meta_extracted": True
             }
         )
         db.add(new_content)
@@ -204,6 +271,10 @@ class ScraperEngine:
         # Update Page
         page.status = models.PageStatus.PROCESSED
         page.title = title
+        page.author = meta.get("author")
+        page.summary = meta.get("summary")
+        page.image_url = meta.get("image_url")
+        page.language = meta.get("language")
         page.published_at = published_at
         page.scraped_at = datetime.now(timezone.utc)
         page.content_hash = content_hash

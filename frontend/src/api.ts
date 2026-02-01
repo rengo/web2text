@@ -1,6 +1,6 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000';
 
-async function request(endpoint: string, options: RequestInit = {}) {
+export async function request(endpoint: string, options: RequestInit = {}) {
     const headers = {
         'Content-Type': 'application/json',
         ...(options.headers || {})
@@ -84,6 +84,19 @@ export async function toggleSite(id: string, enabled: boolean) {
     const res = await request(`/sites/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ enabled })
+    });
+    return res.json();
+}
+
+export async function fetchSettings() {
+    const res = await request('/settings/');
+    return res.json();
+}
+
+export async function updateSetting(key: string, value: string) {
+    const res = await request(`/settings/${key}`, {
+        method: 'PUT',
+        body: JSON.stringify({ value })
     });
     return res.json();
 }

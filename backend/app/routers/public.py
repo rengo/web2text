@@ -37,8 +37,14 @@ class PublicPageResponse(BaseModel):
     url: str
     canonical_url: str
     title: Optional[str]
+    author: Optional[str] = None
+    summary: Optional[str] = None
+    image_url: Optional[str] = None
+    language: Optional[str] = None
+    published_at: Optional[datetime]
     scraped_at: Optional[datetime]
     content: Optional[str] = None
+    content_html: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -102,8 +108,14 @@ async def get_site_content(
             url=page.url,
             canonical_url=page.canonical_url,
             title=page.title,
+            author=page.author,
+            summary=page.summary,
+            image_url=page.image_url,
+            language=page.language,
+            published_at=page.published_at,
             scraped_at=page.scraped_at,
-            content=content_obj.extracted_text if content_obj else None
+            content=content_obj.extracted_text if content_obj else None,
+            content_html=content_obj.raw_html if content_obj else None
         ))
     
     return PublicSiteResponse(

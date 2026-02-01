@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { fetchSettings, updateSetting } from '../api';
 
 interface Setting {
     key: string;
     value: string;
 }
-
-const API_BASE_URL = 'http://localhost:8000';
 
 export default function Settings() {
     const [interval, setIntervalValue] = useState<number>(10);
@@ -15,20 +14,17 @@ export default function Settings() {
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     useEffect(() => {
-        fetchSettings();
+        fetchSettingsData();
     }, []);
 
-    const fetchSettings = async () => {
+    const fetchSettingsData = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/settings/`);
-            if (response.ok) {
-                const data: Setting[] = await response.json();
-                const intervalSetting = data.find(s => s.key === 'scrape_interval_minutes');
-                const lookbackSetting = data.find(s => s.key === 'lookback_days');
+            const data = await fetchSettings();
+            const intervalSetting = data.find((s: Setting) => s.key === 'scrape_interval_minutes');
+            const lookbackSetting = data.find((s: Setting) => s.key === 'lookback_days');
 
-                if (intervalSetting) setIntervalValue(parseInt(intervalSetting.value));
-                if (lookbackSetting) setLookbackDays(parseInt(lookbackSetting.value));
-            }
+            if (intervalSetting) setIntervalValue(parseInt(intervalSetting.value));
+            if (lookbackSetting) setLookbackDays(parseInt(lookbackSetting.value));
         } catch (error) {
             console.error('Error fetching settings:', error);
         } finally {
@@ -43,26 +39,13 @@ export default function Settings() {
 
         try {
             // Save interval
-            const res1 = await fetch(`${API_BASE_URL}/settings/scrape_interval_minutes`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ value: interval.toString() }),
-            });
-
+            await updateSetting('scrape_interval_minutes', interval.toString());
             // Save lookback days
-            const res2 = await fetch(`${API_BASE_URL}/settings/lookback_days`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ value: lookbackDays.toString() }),
-            });
+            await updateSetting('lookback_days', lookbackDays.toString());
 
-            if (res1.ok && res2.ok) {
-                setMessage({ type: 'success', text: 'Configuración guardada correctamente' });
-            } else {
-                setMessage({ type: 'error', text: 'Error al guardar la configuración' });
-            }
+            setMessage({ type: 'success', text: 'Configuración guardada correctamente' });
         } catch (error) {
-            setMessage({ type: 'error', text: 'Error de conexión' });
+            setMessage({ type: 'error', text: 'Error al guardar la configuración' });
         } finally {
             setSaving(false);
         }

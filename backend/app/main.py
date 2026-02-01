@@ -19,7 +19,7 @@ import os
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:3005").split(","),
+    allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3010").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

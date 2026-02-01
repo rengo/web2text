@@ -19,6 +19,19 @@ class DiscoveryPipeline:
     
     def __init__(self, http_client: httpx.AsyncClient):
         self.client = http_client
+        self.blacklist_patterns = [
+            "/category/", "/tag/", "/archive/", "/author/", "/page/", "/search/", "/search?",
+            "/etiqueta/", "/categoria/", "/autor/", "/pag/", "/busqueda/", "/busqueda?", "/tema/" # Spanish common patterns
+        ]
+
+    def _is_valid_url(self, url: str) -> bool:
+        """
+        Checks if the URL is valid by ensuring it doesn't contain blacklisted patterns.
+        """
+        for pattern in self.blacklist_patterns:
+            if pattern in url:
+                return False
+        return True
 
     async def run(self, site: Site) -> List[str]:
         urls = set()
@@ -94,7 +107,12 @@ class DiscoveryPipeline:
                         except: pass
                         
                     if loc:
-                         c_url = canonicalize_url(loc.text.strip())
+                         # Filter pattern
+                         raw_url = loc.text.strip()
+                         if not self._is_valid_url(raw_url):
+                             continue
+                             
+                         c_url = canonicalize_url(raw_url)
                          urls.add(c_url)
         except Exception as e:
             logger.error(f"Sitemap error at {url}: {e}")
@@ -114,6 +132,8 @@ class DiscoveryPipeline:
                         continue
                 
                 if 'link' in entry:
+                    if not self._is_valid_url(entry.link):
+                        continue
                     c_url = canonicalize_url(entry.link)
                     urls.add(c_url)
         except Exception as e:
@@ -131,6 +151,8 @@ class DiscoveryPipeline:
                 full_url = str(httpx.URL(url).join(href))
                 # Basic Host check
                 if httpx.URL(full_url).host == httpx.URL(url).host:
+                    if not self._is_valid_url(full_url):
+                        continue
                     c_url = canonicalize_url(full_url)
                     urls.add(c_url)
         except Exception as e:

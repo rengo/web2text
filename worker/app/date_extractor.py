@@ -94,14 +94,10 @@ class DateExtractor:
     @staticmethod
     def _parse_date(date_str: str) -> Optional[datetime]:
         try:
+            from datetime import timezone
             dt = dateutil.parser.parse(date_str)
             if dt.tzinfo is None:
-                # Assume UTC if naive, or just keep naive? 
-                # Requirement says "Normalizar a timezone-aware (UTC en DB)"
-                # If naive, assume UTC or local? Let's assume matches UTC for now to be safe, or just return naive and let DB handle.
-                # Actually best to force UTC via replace if naive
-                pass 
-                # For now let's just return key logic
+                dt = dt.replace(tzinfo=timezone.utc)
             return dt
         except:
             return None

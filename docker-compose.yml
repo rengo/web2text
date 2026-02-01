@@ -9,7 +9,7 @@ services:
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5435:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -29,11 +29,11 @@ services:
       - SCRAPE_INTERVAL_SECONDS=600
       - USE_PLAYWRIGHT=false
     ports:
-      - "8000:8000"
+      - "9000:9000"
     depends_on:
       db:
         condition: service_healthy
-    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 9000 --reload
 
   worker:
     build:
@@ -61,9 +61,9 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "3005:3000"
+      - "3010:3010"
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:9000
     command: npm run dev -- --host
 
 volumes:

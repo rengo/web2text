@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchSites, toggleSite, createSite, API_URL } from '../api';
+import { fetchSites, toggleSite, createSite, request } from '../api';
 
 export default function SiteList() {
     const [sites, setSites] = useState<any[]>([]);
@@ -23,8 +23,12 @@ export default function SiteList() {
     };
 
     const handleRun = async (id: string) => {
-        await fetch(`${API_URL}/sites/${id}/run`, { method: 'POST' });
-        alert("Run triggered");
+        try {
+            await request(`/sites/${id}/run`, { method: 'POST' });
+            alert("Run triggered");
+        } catch (e) {
+            alert("Failed to trigger run: " + (e as Error).message);
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {

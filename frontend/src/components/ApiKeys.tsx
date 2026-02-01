@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { request } from "../api";
 
 interface ApiKey {
     id: string;
@@ -24,8 +25,7 @@ const ApiKeys = () => {
 
     const fetchKeys = async () => {
         try {
-            const response = await fetch("http://localhost:8000/api/api-keys");
-            if (!response.ok) throw new Error("Failed to fetch keys");
+            const response = await request("/api/api-keys");
             const data = await response.json();
             setKeys(data);
         } catch (err) {
@@ -37,12 +37,10 @@ const ApiKeys = () => {
 
     const handleGenerateKey = async () => {
         try {
-            const response = await fetch("http://localhost:8000/api/api-keys", {
+            const response = await request("/api/api-keys", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name: newKeyName }),
             });
-            if (!response.ok) throw new Error("Failed to generate key");
             const data = await response.json();
             setGeneratedKey(data.key);
             await fetchKeys(); // Refresh list
@@ -54,10 +52,9 @@ const ApiKeys = () => {
     const handleRevoke = async (id: string) => {
         if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) return;
         try {
-            const response = await fetch(`http://localhost:8000/api/api-keys/${id}`, {
+            const response = await request(`/api/api-keys/${id}`, {
                 method: "DELETE",
             });
-            if (!response.ok) throw new Error("Failed to revoke key");
             fetchKeys(); // Refresh list
         } catch (err) {
             alert("Error revoking key");

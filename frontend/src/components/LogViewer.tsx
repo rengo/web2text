@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { API_URL } from '../api';
 
 interface LogEntry {
     message: string;
@@ -13,7 +14,7 @@ const LogViewer: React.FC = () => {
     const endRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const apiUrl = API_URL;
         const wsUrl = apiUrl.replace('http', 'ws') + '/ws/logs';
         let isCleaningUp = false;
 
