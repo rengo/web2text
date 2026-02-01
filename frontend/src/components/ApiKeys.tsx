@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { request } from "../api";
 
@@ -52,7 +52,7 @@ const ApiKeys = () => {
     const handleRevoke = async (id: string) => {
         if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) return;
         try {
-            const response = await request(`/api/api-keys/${id}`, {
+            await request(`/api/api-keys/${id}`, {
                 method: "DELETE",
             });
             fetchKeys(); // Refresh list

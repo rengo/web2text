@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchFeed, fetchSites } from '../api';
 
 export default function Feed() {
