@@ -89,3 +89,10 @@ class PageContentRead(BaseModel):
 
 class PageDetail(PageRead):
     latest_content: Optional[PageContentRead] = None
+
+class PaginatedFeedResponse(BaseModel):
+    items: list[PageDetail]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

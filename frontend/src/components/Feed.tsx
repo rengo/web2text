@@ -7,10 +7,13 @@ export default function Feed() {
     const [selectedSite, setSelectedSite] = useState<string>('');
     const [since, setSince] = useState(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 16));
     const [selectedPage, setSelectedPage] = useState<any | null>(null);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     const load = async () => {
-        const data = await fetchFeed(new Date(since).toISOString(), selectedSite);
-        setPages(data);
+        const data = await fetchFeed(new Date(since).toISOString(), selectedSite, page);
+        setPages(data.items);
+        setTotalPages(data.total_pages);
     };
 
     const loadSites = async () => {
@@ -18,8 +21,13 @@ export default function Feed() {
         setSites(data);
     };
 
-    useEffect(() => { load(); }, [since, selectedSite]);
+    useEffect(() => { load(); }, [since, selectedSite, page]);
     useEffect(() => { loadSites(); }, []);
+
+    // Scroll to top when page changes
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [page]);
 
     return (
         <div className="space-y-8">
@@ -34,7 +42,7 @@ export default function Feed() {
                         <label className="text-[10px] uppercase font-bold text-gray-400 ml-1">Filter by Site</label>
                         <select
                             value={selectedSite}
-                            onChange={e => setSelectedSite(e.target.value)}
+                            onChange={e => { setSelectedSite(e.target.value); setPage(1); }}
                             className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                         >
                             <option value="">All Sites</option>
@@ -144,6 +152,31 @@ export default function Feed() {
                     </article>
                 ))}
             </div>
+
+            {/* Pagination Controls */}
+            {pages.length > 0 && (
+                <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="text-sm text-gray-500">
+                        Page <span className="font-semibold text-gray-900">{page}</span> of <span className="font-semibold text-gray-900">{totalPages}</span>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page >= totalPages}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {pages.length === 0 && (
                 <div className="bg-white p-20 rounded-3xl border border-dashed border-gray-200 text-center">
