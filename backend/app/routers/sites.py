@@ -21,16 +21,21 @@ async def create_site(site: schemas.SiteCreate, db: AsyncSession = Depends(datab
 @router.get("/", response_model=List[schemas.SiteRead])
 async def read_sites(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(database.get_db)):
     stmt = (
-        select(models.Site, func.count(models.Page.id).label("pages_count"))
-        .outerjoin(models.Page, (models.Site.id == models.Page.site_id) & (models.Page.status == models.PageStatus.PROCESSED))
+        select(
+            models.Site, 
+            func.count(models.Page.id).filter(models.Page.status == models.PageStatus.PROCESSED).label("pages_count"),
+            func.count(models.Page.id).filter(models.Page.status == models.PageStatus.NEW).label("pending_count")
+        )
+        .outerjoin(models.Page, models.Site.id == models.Page.site_id)
         .group_by(models.Site.id)
         .offset(skip).limit(limit)
     )
     result = await db.execute(stmt)
     
     sites_with_counts = []
-    for site, count in result:
-        setattr(site, "pages_count", count)
+    for site, p_count, pending in result:
+        setattr(site, "pages_count", p_count)
+        setattr(site, "pending_count", pending)
         sites_with_counts.append(site)
         
     return sites_with_counts

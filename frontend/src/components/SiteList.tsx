@@ -107,6 +107,7 @@ export default function SiteList() {
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">URL</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Strategy</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Indexed Pages</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Pending</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
                             <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</th>
                         </tr>
@@ -123,6 +124,9 @@ export default function SiteList() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">
                                     {site.pages_count || 0}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-orange-600">
+                                    {site.pending_count || 0}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${site.enabled

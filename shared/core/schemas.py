@@ -47,6 +47,7 @@ class SiteRead(SiteBase):
     created_at: datetime
     updated_at: datetime
     pages_count: int = 0
+    pending_count: int = 0
 
     class Config:
         from_attributes = True
