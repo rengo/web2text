@@ -18,7 +18,10 @@ if DATABASE_URL:
     # Alembic uses sync driver for some parts, but here we use async context.
     # However, sqlalchemy.url in ini is usually what's used.
     # We override it here.
-    config.set_main_option("sqlalchemy.url", DATABASE_URL)
+    # KEY FIX: ConfigParser treats % as start of interpolation. We must escape it to %%
+    # so that the actual URL (with %23 etc) makes it through.
+    safe_url = DATABASE_URL.replace("%", "%%")
+    config.set_main_option("sqlalchemy.url", safe_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
