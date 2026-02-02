@@ -25,7 +25,11 @@ services:
       - ./backend:/app/backend
       - ./shared:/app/shared # Assuming we use a shared folder strategy
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/web2text
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=web2text
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
       - SCRAPE_INTERVAL_SECONDS=600
       - USE_PLAYWRIGHT=false
     ports:
@@ -44,7 +48,11 @@ services:
       - ./worker:/app/worker
       - ./shared:/app/shared
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/web2text
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=web2text
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
       - SCRAPE_INTERVAL_SECONDS=600
       - PAGES_PER_RUN=200
       - MAX_RETRIES=2

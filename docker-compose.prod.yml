@@ -24,7 +24,11 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-web2text}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-web2text}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
     depends_on:
       db:
         condition: service_healthy
@@ -38,7 +42,11 @@ services:
       dockerfile: backend/Dockerfile
     restart: always
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-web2text}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-web2text}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
       - SCRAPE_INTERVAL_SECONDS=${SCRAPE_INTERVAL_SECONDS:-600}
       - USE_PLAYWRIGHT=${USE_PLAYWRIGHT:-false}
       # Proxy Configuration (Backend uses port 9000 internally)
@@ -63,7 +71,11 @@ services:
       dockerfile: worker/Dockerfile
     restart: always
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-web2text}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-web2text}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
       - SCRAPE_INTERVAL_SECONDS=${SCRAPE_INTERVAL_SECONDS:-600}
       - PAGES_PER_RUN=${PAGES_PER_RUN:-200}
       - MAX_RETRIES=${MAX_RETRIES:-2}
