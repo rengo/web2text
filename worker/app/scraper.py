@@ -89,7 +89,7 @@ class ScraperEngine:
         await self.reload_settings(db)
         
         await remote_logger.log(f"Starting discovery phase for {site.name}...", level="info", extra={"site_id": site.id, "run_id": run_id})
-        discovered_urls = await self.discovery.run(site)
+        discovered_urls = await self.discovery.run(site, lookback_days=self.lookback_days)
         
         # --- CAP DISCOVERY ---
         if len(discovered_urls) > 1000:

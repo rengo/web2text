@@ -22,7 +22,7 @@ async def create_site(site: schemas.SiteCreate, db: AsyncSession = Depends(datab
 async def read_sites(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(database.get_db)):
     stmt = (
         select(models.Site, func.count(models.Page.id).label("pages_count"))
-        .outerjoin(models.Page, models.Site.id == models.Page.site_id)
+        .outerjoin(models.Page, (models.Site.id == models.Page.site_id) & (models.Page.status == models.PageStatus.PROCESSED))
         .group_by(models.Site.id)
         .offset(skip).limit(limit)
     )

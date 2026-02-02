@@ -33,13 +33,13 @@ class DiscoveryPipeline:
                 return False
         return True
 
-    async def run(self, site: Site) -> List[str]:
+    async def run(self, site: Site, lookback_days: int = 30) -> List[str]:
         urls = set()
         
         # 1. Sitemap Strategy
         if site.sitemap_url:
             logger.info(f"Trying sitemap for {site.name}: {site.sitemap_url}")
-            sitemap_urls = await self._fetch_sitemap(site.sitemap_url)
+            sitemap_urls = await self._fetch_sitemap(site.sitemap_url, lookback_days)
             if sitemap_urls:
                 logger.info(f"Found {len(sitemap_urls)} URLs via sitemap")
                 return list(sitemap_urls)
@@ -48,7 +48,7 @@ class DiscoveryPipeline:
         # 2. RSS Strategy (fallback if sitemap empty/fail and rss configured)
         if site.rss_url:
             logger.info(f"Trying RSS for {site.name}: {site.rss_url}")
-            rss_urls = await self._fetch_rss(site.rss_url)
+            rss_urls = await self._fetch_rss(site.rss_url, lookback_days)
             if rss_urls:
                 logger.info(f"Found {len(rss_urls)} URLs via RSS")
                 return list(rss_urls)
@@ -60,10 +60,10 @@ class DiscoveryPipeline:
         link_urls = await self._fetch_links(site.base_url)
         return list(link_urls)
 
-    async def _fetch_sitemap(self, url: str) -> Set[str]:
+    async def _fetch_sitemap(self, url: str, lookback_days: int) -> Set[str]:
         # Minimal sitemap parser (handles sitemap index recursively 1 level)
         urls = set()
-        threshold = datetime.now(timezone.utc) - timedelta(days=30)
+        threshold = datetime.now(timezone.utc) - timedelta(days=lookback_days)
         
         try:
             response = await self.client.get(url, timeout=30.0)
@@ -90,7 +90,7 @@ class DiscoveryPipeline:
                         except: pass
                         
                     if loc:
-                        subset = await self._fetch_sitemap(loc.text.strip())
+                        subset = await self._fetch_sitemap(loc.text.strip(), lookback_days)
                         urls.update(subset)
             else:
                 # Is urlset
@@ -119,9 +119,9 @@ class DiscoveryPipeline:
             
         return urls
 
-    async def _fetch_rss(self, url: str) -> Set[str]:
+    async def _fetch_rss(self, url: str, lookback_days: int) -> Set[str]:
         urls = set()
-        threshold = datetime.now(timezone.utc) - timedelta(days=30)
+        threshold = datetime.now(timezone.utc) - timedelta(days=lookback_days)
         try:
             # feedparser is blocking, run in executor
             feed = await asyncio.to_thread(feedparser.parse, url)
