@@ -47,7 +47,7 @@ async def get_new_feed(
     offset = (page - 1) * page_size
     query = select(models.Page, models.Site.name.label("site_name")).join(
         models.Site, models.Page.site_id == models.Site.id
-    ).where(*conditions).order_by(desc(models.Page.scraped_at)).offset(offset).limit(page_size)
+    ).where(*conditions).order_by(desc(models.Page.published_at)).offset(offset).limit(page_size)
     
     result = await db.execute(query)
     rows = result.all()
