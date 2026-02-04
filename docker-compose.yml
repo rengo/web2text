@@ -32,6 +32,7 @@ services:
       - POSTGRES_PORT=5432
       - SCRAPE_INTERVAL_SECONDS=600
       - USE_PLAYWRIGHT=false
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3010,http://localhost:3011
     ports:
       - "9000:9000"
     depends_on:
@@ -69,7 +70,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "3010:3010"
+      - "3011:3010"
     environment:
       - VITE_API_URL=http://localhost:9000
     command: npm run dev -- --host

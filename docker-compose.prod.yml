@@ -54,7 +54,7 @@ services:
       - LETSENCRYPT_HOST=${DOMAIN_API:-api.web2text.rengo.run}
       - VIRTUAL_PORT=9000
       # CORS
-      - ALLOWED_ORIGINS=https://${DOMAIN_FRONTEND:-web2text.rengo.run},http://localhost:5173,http://localhost:3010
+      - ALLOWED_ORIGINS=https://${DOMAIN_FRONTEND:-web2text.rengo.run},http://localhost:5173,http://localhost:3010,http://localhost:3011
     depends_on:
       db:
         condition: service_healthy

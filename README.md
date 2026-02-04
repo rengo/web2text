@@ -32,7 +32,7 @@ Web2Text employs a strict content-based filtering strategy to ensure high-qualit
 - **Backend**: FastAPI (Port 9000)
 - **Worker**: Python + APScheduler
 - **Database**: Postgres 15
-- **Frontend**: React + Vite (Port 3010)
+- **Frontend**: React + Vite (Port 3011)
 
 ## Getting Started
 
@@ -65,11 +65,11 @@ Web2Text employs a strict content-based filtering strategy to ensure high-qualit
    - **Clarín**: Strategy=SITEMAP + RSS backup
 
 4. **Access UI**:
-   - Frontend: [http://localhost:3010](http://localhost:3010)
+   - Frontend: [http://localhost:3011](http://localhost:3011)
    - API Docs: [http://localhost:9000/docs](http://localhost:9000/docs)
 
 ## Verification
-1. Go to `http://localhost:3010`.
+1. Go to `http://localhost:3011`.
 2. Click "Sites" to see the seeded sites.
 3. Click "Run Now" on a site to trigger immediate scraping (logs will appear in worker container).
 4. Go to "Feed" to see discovered articles as they appear.

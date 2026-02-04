@@ -11,7 +11,7 @@ import uuid
 from shared.core.database import get_db
 from shared.core.models import ApiKey
 
-router = APIRouter(prefix="/api/api-keys", tags=["api-keys"])
+router = APIRouter(prefix="/api-keys", tags=["api-keys"])
 # Authenticated endpoints (assuming auth is handled globally or we need to add depends)
 # For now, assuming internal dashboard usage implies checked auth or open for dev (based on user context).
 # Ideally, we should add user auth dependency here if the app has it.

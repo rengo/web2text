@@ -10,7 +10,7 @@ import hashlib
 from shared.core.database import get_db
 from shared.core import models
 
-router = APIRouter(prefix="/api/public", tags=["public"])
+router = APIRouter(prefix="/public", tags=["public"])
 
 async def verify_api_key(x_api_key: str = Header(...), db: AsyncSession = Depends(get_db)):
     """

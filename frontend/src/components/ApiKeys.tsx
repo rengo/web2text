@@ -25,7 +25,7 @@ const ApiKeys = () => {
 
     const fetchKeys = async () => {
         try {
-            const response = await request("/api/api-keys");
+            const response = await request("/api-keys");
             const data = await response.json();
             setKeys(data);
         } catch (err) {
@@ -37,7 +37,7 @@ const ApiKeys = () => {
 
     const handleGenerateKey = async () => {
         try {
-            const response = await request("/api/api-keys", {
+            const response = await request("/api-keys", {
                 method: "POST",
                 body: JSON.stringify({ name: newKeyName }),
             });
@@ -52,7 +52,7 @@ const ApiKeys = () => {
     const handleRevoke = async (id: string) => {
         if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) return;
         try {
-            await request(`/api/api-keys/${id}`, {
+            await request(`/api-keys/${id}`, {
                 method: "DELETE",
             });
             fetchKeys(); // Refresh list
