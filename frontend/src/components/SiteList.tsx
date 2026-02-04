@@ -4,6 +4,7 @@ import { fetchSites, toggleSite, createSite, request } from '../api';
 export default function SiteList() {
     const [sites, setSites] = useState<any[]>([]);
     const [showForm, setShowForm] = useState(false);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
     const [newSite, setNewSite] = useState({
         name: '',
         base_url: '',
@@ -104,6 +105,7 @@ export default function SiteList() {
                     <thead className="bg-gray-50/50">
                         <tr>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Name</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">ID</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">URL</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Strategy</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Indexed Pages</th>
@@ -116,6 +118,30 @@ export default function SiteList() {
                         {sites.map(site => (
                             <tr key={site.id} className="hover:bg-gray-50/50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">{site.name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center space-x-2">
+                                        <code className="bg-gray-50 px-2 py-1 rounded text-xs text-gray-600 font-mono">{site.id.substring(0, 8)}...</code>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(site.id);
+                                                setCopiedId(site.id);
+                                                setTimeout(() => setCopiedId(null), 2000);
+                                            }}
+                                            className={`${copiedId === site.id ? 'text-green-600' : 'text-gray-400 hover:text-blue-600'} transition-colors`}
+                                            title="Copy full ID"
+                                        >
+                                            {copiedId === site.id ? (
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-sm">{site.base_url}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className="bg-purple-50 text-purple-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
