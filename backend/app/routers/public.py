@@ -61,7 +61,7 @@ class PublicSiteResponse(BaseModel):
 @router.get("/sites/{site_id}", response_model=PublicSiteResponse)
 async def get_site_content(
     site_id: UUID, 
-    limit: int = Query(10, le=100),
+    limit: int = Query(100, le=100),
     api_key: models.ApiKey = Depends(verify_api_key),
     db: AsyncSession = Depends(get_db)
 ):
