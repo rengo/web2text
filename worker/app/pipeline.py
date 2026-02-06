@@ -1,7 +1,7 @@
 import logging
 import asyncio
 from datetime import datetime, timedelta, timezone
-from typing import List, Set
+from typing import List, Set, Optional
 from shared.core.models import Site, CrawlStrategy
 from shared.core.utils import canonicalize_url
 import httpx
@@ -36,29 +36,75 @@ class DiscoveryPipeline:
     async def run(self, site: Site, lookback_days: int = 30) -> List[str]:
         urls = set()
         
+        # 0. Auto-discover sitemap if missing
+        if not site.sitemap_url:
+            logger.info(f"Sitemap URL missing for {site.name}, attempting auto-discovery...")
+            discovered_sitemap = await self._discover_sitemap(site.base_url)
+            if discovered_sitemap:
+                logger.info(f"Discovered sitemap for {site.name}: {discovered_sitemap}")
+                site.sitemap_url = discovered_sitemap
+                # Note: We don't save to DB here as 'site' is often a detached or temporary object 
+                # depending on how the caller handles sessions, but it will be used for this run.
+        
         # 1. Sitemap Strategy
         if site.sitemap_url:
             logger.info(f"Trying sitemap for {site.name}: {site.sitemap_url}")
             sitemap_urls = await self._fetch_sitemap(site.sitemap_url, lookback_days)
             if sitemap_urls:
                 logger.info(f"Found {len(sitemap_urls)} URLs via sitemap")
-                return list(sitemap_urls)
-            logger.warning(f"Sitemap failed or empty for {site.name}")
+                urls.update(sitemap_urls)
+            else:
+                logger.warning(f"Sitemap failed or empty for {site.name}")
 
-        # 2. RSS Strategy (fallback if sitemap empty/fail and rss configured)
+        # 2. RSS Strategy
         if site.rss_url:
             logger.info(f"Trying RSS for {site.name}: {site.rss_url}")
             rss_urls = await self._fetch_rss(site.rss_url, lookback_days)
             if rss_urls:
                 logger.info(f"Found {len(rss_urls)} URLs via RSS")
-                return list(rss_urls)
+                urls.update(rss_urls)
         
-        # 3. Links Strategy (Final fallback)
-        # Only if explicitly allowed or if it's the strategy? 
-        # Prompt says: "Si sitemap y rss no dan resultados: Estrategia links"
-        logger.info(f"Falling back to Links crawl for {site.name}")
+        # 3. Links Strategy
+        # We always check the home page for links, especially if other sources are thin
+        logger.info(f"Adding Links crawl for {site.name}")
         link_urls = await self._fetch_links(site.base_url)
-        return list(link_urls)
+        urls.update(link_urls)
+        
+        return list(urls)
+
+    async def _discover_sitemap(self, base_url: str) -> Optional[str]:
+        """Attempts to find a sitemap by checking robots.txt and common paths."""
+        # 1. Try robots.txt
+        try:
+            robots_url = str(httpx.URL(base_url).join("robots.txt"))
+            resp = await self.client.get(robots_url, timeout=5.0)
+            if resp.status_code == 200:
+                import re
+                matches = re.findall(r'^Sitemap:\s*(.*)$', resp.text, re.MULTILINE | re.IGNORECASE)
+                if matches:
+                    # Return the first one found
+                    logger.info(f"Sitemap found in robots.txt: {matches[0].strip()}")
+                    return matches[0].strip()
+        except Exception as e:
+            logger.debug(f"Error checking robots.txt for {base_url}: {e}")
+
+        # 2. Try common paths
+        common_paths = ["sitemap.xml", "sitemap_index.xml", "sitemap/"]
+        for path in common_paths:
+            url = str(httpx.URL(base_url).join(path))
+            try:
+                # Use HEAD first for efficiency
+                resp = await self.client.head(url, timeout=5.0)
+                if resp.status_code == 200 and "xml" in resp.headers.get("content-type", "").lower():
+                    return url
+                
+                # Some servers block HEAD or return wrong content-type, try GET
+                resp = await self.client.get(url, timeout=5.0)
+                if resp.status_code == 200 and ("<urlset" in resp.text or "<sitemapindex" in resp.text):
+                    return url
+            except Exception:
+                continue
+        return None
 
     async def _fetch_sitemap(self, url: str, lookback_days: int) -> Set[str]:
         # Minimal sitemap parser (handles sitemap index recursively 1 level)

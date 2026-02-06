@@ -30,11 +30,13 @@ class SiteBase(BaseModel):
     crawl_strategy: CrawlStrategy = CrawlStrategy.SITEMAP
     rate_limit_ms: int = 1000
     user_agent: Optional[str] = None
+    config_warning: Optional[str] = None
 
 class SiteCreate(SiteBase):
     pass
 
 class SiteUpdate(BaseModel):
+    name: Optional[str] = None
     enabled: Optional[bool] = None
     sitemap_url: Optional[str] = None
     rss_url: Optional[str] = None

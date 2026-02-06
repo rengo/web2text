@@ -43,27 +43,23 @@ class ScraperEngine:
             valid_types = {'NewsArticle', 'Article', 'BlogPosting', 'Report'}
             
             for script in scripts:
-                if not script.string:
+                content = script.get_text()
+                if not content:
                     continue
                 try:
-                    data = json.loads(script.string)
-                    # JSON-LD can be a list or a dict
+                    data = json.loads(content, strict=False)
                     if isinstance(data, dict):
                         data = [data]
                     
                     for item in data:
-                        # item can be a dict, or we might need to look deeper if it's a graph
-                        # Simple flat check first
                         item_type = item.get('@type')
                         
-                        # Handle list of types
                         if isinstance(item_type, list):
                             if any(t in valid_types for t in item_type):
                                 return True
                         elif item_type in valid_types:
                             return True
                             
-                        # Handle @graph structure (often used by Yoast etc)
                         if '@graph' in item:
                             for node in item['@graph']:
                                 node_type = node.get('@type')
@@ -89,8 +85,47 @@ class ScraperEngine:
         await self.reload_settings(db)
         
         await remote_logger.log(f"Starting discovery phase for {site.name}...", level="info", extra={"site_id": site.id, "run_id": run_id})
+        
+        # Capture sitemap_url before running to detect if it was auto-discovered
+        old_sitemap = site.sitemap_url
         discovered_urls = await self.discovery.run(site, lookback_days=self.lookback_days)
         
+        # Persist discovered sitemap if found
+        if not old_sitemap and site.sitemap_url:
+            from sqlalchemy import update
+            await db.execute(
+                update(models.Site)
+                .where(models.Site.id == site.id)
+                .values(sitemap_url=site.sitemap_url, config_warning=None)
+            )
+            await db.commit()
+            await remote_logger.log(f"Auto-discovered and saved sitemap: {site.sitemap_url}", level="success", extra={"site_id": site.id})
+        elif site.sitemap_url or site.rss_url:
+            # Clear warning if we have at least one source
+            from sqlalchemy import update
+            await db.execute(
+                update(models.Site)
+                .where(models.Site.id == site.id)
+                .values(config_warning=None)
+            )
+            await db.commit()
+
+        # Warning if discovery is weak
+        if not site.sitemap_url and not site.rss_url:
+            warning_msg = "No Sitemap or RSS found. Only discovering from homepage."
+            from sqlalchemy import update
+            await db.execute(
+                update(models.Site)
+                .where(models.Site.id == site.id)
+                .values(config_warning=warning_msg)
+            )
+            await db.commit()
+            await remote_logger.log(
+                f"Warning: Site '{site.name}' has {warning_msg} "
+                "Consider adding a Sitemap manually for better coverage.", 
+                level="warning", extra={"site_id": site.id}
+            )
+
         # --- CAP DISCOVERY ---
         if len(discovered_urls) > 1000:
             logger.info(f"Site {site.name}: Capping discovery from {len(discovered_urls)} to 1000 URLs")

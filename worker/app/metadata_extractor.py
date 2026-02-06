@@ -36,7 +36,7 @@ class MetadataExtractor:
         if not result["title"]:
             title_tag = (
                 soup.find("meta", property="og:title") or 
-                soup.find("meta", name="twitter:title")
+                soup.find("meta", attrs={"name": "twitter:title"})
             )
             if title_tag:
                 result["title"] = title_tag.get("content")
@@ -44,9 +44,9 @@ class MetadataExtractor:
         # Author Fallback
         if not result["author"]:
             author_tag = (
-                soup.find("meta", name="author") or 
+                soup.find("meta", attrs={"name": "author"}) or 
                 soup.find("meta", property="article:author") or
-                soup.find("meta", name="twitter:creator")
+                soup.find("meta", attrs={"name": "twitter:creator"})
             )
             if author_tag:
                 result["author"] = author_tag.get("content")
@@ -54,9 +54,9 @@ class MetadataExtractor:
         # Summary Fallback
         if not result["summary"]:
             desc_tag = (
-                soup.find("meta", name="description") or 
+                soup.find("meta", attrs={"name": "description"}) or 
                 soup.find("meta", property="og:description") or
-                soup.find("meta", name="twitter:description")
+                soup.find("meta", attrs={"name": "twitter:description"})
             )
             if desc_tag:
                 result["summary"] = desc_tag.get("content")
@@ -65,7 +65,7 @@ class MetadataExtractor:
         if not result["image_url"]:
             img_tag = (
                 soup.find("meta", property="og:image") or 
-                soup.find("meta", name="twitter:image") or
+                soup.find("meta", attrs={"name": "twitter:image"}) or
                 soup.find("link", rel="image_src")
             )
             if img_tag:
@@ -77,7 +77,7 @@ class MetadataExtractor:
             if html_tag and html_tag.get("lang"):
                 result["language"] = html_tag.get("lang")
             else:
-                lang_tag = soup.find("meta", attrs={"http-equiv": "content-language"}) or soup.find("meta", name="language")
+                lang_tag = soup.find("meta", attrs={"http-equiv": "content-language"}) or soup.find("meta", attrs={"name": "language"})
                 if lang_tag:
                     result["language"] = lang_tag.get("content")
 

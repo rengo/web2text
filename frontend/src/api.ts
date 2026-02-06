@@ -80,12 +80,16 @@ export async function createSite(site: any) {
     return res.json();
 }
 
-export async function toggleSite(id: string, enabled: boolean) {
+export async function updateSite(id: string, update: any) {
     const res = await request(`/sites/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ enabled })
+        body: JSON.stringify(update)
     });
     return res.json();
+}
+
+export async function toggleSite(id: string, enabled: boolean) {
+    return updateSite(id, { enabled });
 }
 
 export async function fetchSettings() {
