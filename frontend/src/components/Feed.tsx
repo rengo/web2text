@@ -5,13 +5,14 @@ export default function Feed() {
     const [pages, setPages] = useState<any[]>([]);
     const [sites, setSites] = useState<any[]>([]);
     const [selectedSite, setSelectedSite] = useState<string>('');
+    const [search, setSearch] = useState('');
     const [since, setSince] = useState(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 16));
     const [selectedPage, setSelectedPage] = useState<any | null>(null);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
     const load = async () => {
-        const data = await fetchFeed(new Date(since).toISOString(), selectedSite, page);
+        const data = await fetchFeed(new Date(since).toISOString(), selectedSite, page, 50, search);
         setPages(data.items);
         setTotalPages(data.total_pages);
     };
@@ -21,7 +22,13 @@ export default function Feed() {
         setSites(data);
     };
 
-    useEffect(() => { load(); }, [since, selectedSite, page]);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            load();
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [since, selectedSite, page, search]);
+
     useEffect(() => { loadSites(); }, []);
 
     // Scroll to top when page changes
@@ -38,6 +45,22 @@ export default function Feed() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-col gap-1 min-w-[200px]">
+                        <label className="text-[10px] uppercase font-bold text-gray-400 ml-1">Search</label>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={e => { setSearch(e.target.value); setPage(1); }}
+                                placeholder="Title or content..."
+                                className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            />
+                            <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
                     <div className="flex flex-col gap-1">
                         <label className="text-[10px] uppercase font-bold text-gray-400 ml-1">Filter by Site</label>
                         <select

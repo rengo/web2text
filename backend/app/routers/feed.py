@@ -15,6 +15,7 @@ router = APIRouter(prefix="/feed", tags=["feed"], dependencies=[Depends(auth.get
 async def get_new_feed(
     since: datetime,
     site_id: UUID = Query(None),
+    q: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(database.get_db)
@@ -34,6 +35,13 @@ async def get_new_feed(
     
     if site_id:
         conditions.append(models.Page.site_id == site_id)
+
+    if q:
+        search_filter = f"%{q}%"
+        conditions.append(or_(
+            models.Page.title.ilike(search_filter),
+            models.Page.contents.any(models.PageContent.extracted_text.ilike(search_filter))
+        ))
 
     # Count query
     count_query = select(func.count(models.Page.id)).join(

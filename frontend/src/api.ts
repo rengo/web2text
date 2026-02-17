@@ -63,10 +63,13 @@ export async function fetchSites() {
     return res.json();
 }
 
-export async function fetchFeed(since: string, siteId?: string, page: number = 1, pageSize: number = 50) {
+export async function fetchFeed(since: string, siteId?: string, page: number = 1, pageSize: number = 50, q?: string) {
     let url = `/feed/new?since=${since}&page=${page}&page_size=${pageSize}`;
     if (siteId) {
         url += `&site_id=${siteId}`;
+    }
+    if (q) {
+        url += `&q=${encodeURIComponent(q)}`;
     }
     const res = await request(url);
     return res.json();
