@@ -92,17 +92,26 @@ async def get_site_content(
     pages_result = await db.execute(pages_query)
     pages = pages_result.scalars().all()
     
-    public_pages = []
-    for page in pages:
-        # Fetch latest content
+    # Get all page IDs to fetch contents in one go
+    page_ids = [page.id for page in pages]
+    
+    # Fetch latest content for all these pages in one batch
+    latest_contents = {}
+    if page_ids:
+        # PostgreSQL specific DISTINCT ON is very efficient for this
         content_query = (
             select(models.PageContent)
-            .where(models.PageContent.page_id == page.id)
-            .order_by(desc(models.PageContent.created_at))
-            .limit(1)
+            .where(models.PageContent.page_id.in_(page_ids))
+            .distinct(models.PageContent.page_id)
+            .order_by(models.PageContent.page_id, desc(models.PageContent.created_at))
         )
-        content_res = await db.execute(content_query)
-        content_obj = content_res.scalar_one_or_none()
+        content_result = await db.execute(content_query)
+        for content in content_result.scalars().all():
+            latest_contents[content.page_id] = content
+    
+    public_pages = []
+    for page in pages:
+        content_obj = latest_contents.get(page.id)
         
         public_pages.append(PublicPageResponse(
             url=page.url,

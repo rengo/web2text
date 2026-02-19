@@ -28,6 +28,9 @@ shell-backend:
 clean-db:
 	docker compose exec db psql -U postgres -d web2text -c "TRUNCATE pages, page_contents, scrape_runs CASCADE;"
 
+clean-site:
+	docker compose exec backend python3 backend/scripts/clean_site_data.py $(id)
+	
 # Production
 prod-up:
 	docker compose -f docker-compose.prod.yml up --build -d
@@ -40,9 +43,6 @@ prod-logs:
 
 prod-clean-db:
 	docker compose -f docker-compose.prod.yml exec db psql -U postgres -d web2text -c "TRUNCATE pages, page_contents, scrape_runs CASCADE;"
-
-clean-site:
-	docker compose exec backend python3 backend/scripts/clean_site_data.py $(id)
 
 prod-clean-site:
 	docker compose -f docker-compose.prod.yml exec backend python3 backend/scripts/clean_site_data.py $(id)

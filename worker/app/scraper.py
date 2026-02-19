@@ -20,6 +20,8 @@ class ScraperEngine:
         self.http_client = httpx.AsyncClient(headers={"User-Agent": "Web2TextBot/1.0"}, follow_redirects=True, timeout=30.0)
         self.discovery = DiscoveryPipeline(self.http_client)
         self.lookback_days = 30 # Default
+        import os
+        self.save_raw_html = os.getenv("SAVE_RAW_HTML", "true").lower() == "true"
 
     async def reload_settings(self, db):
         try:
@@ -292,7 +294,7 @@ class ScraperEngine:
         new_content = models.PageContent(
             page_id=page.id,
             extracted_text=text,
-            raw_html=html,
+            raw_html=html if self.save_raw_html else None,
             metadata_={
                 "date_source": date_source,
                 "date_confidence": conf,

@@ -37,10 +37,14 @@ async def get_new_feed(
         conditions.append(models.Page.site_id == site_id)
 
     if q:
-        search_filter = f"%{q}%"
+        # Use PostgreSQL Full Text Search for much better performance
+        # We use 'spanish' to match the GIN indexes created in the models
+        ts_query = func.plainto_tsquery('spanish', q)
         conditions.append(or_(
-            models.Page.title.ilike(search_filter),
-            models.Page.contents.any(models.PageContent.extracted_text.ilike(search_filter))
+            func.to_tsvector('spanish', models.Page.title).op('@@')(ts_query),
+            models.Page.contents.any(
+                func.to_tsvector('spanish', models.PageContent.extracted_text).op('@@')(ts_query)
+            )
         ))
 
     # Count query
@@ -60,19 +64,30 @@ async def get_new_feed(
     result = await db.execute(query)
     rows = result.all()
     
+    # Get all page IDs to fetch contents in one go
+    page_ids = [page_obj.id for page_obj, _ in rows]
+    
+    # Fetch latest content for all these pages in one batch
+    # We use a subquery with DISTINCT ON to get only the latest PageContent per page_id
+    latest_contents = {}
+    if page_ids:
+        # PostgreSQL specific DISTINCT ON is very efficient for this
+        content_query = (
+            select(models.PageContent)
+            .where(models.PageContent.page_id.in_(page_ids))
+            .distinct(models.PageContent.page_id)
+            .order_by(models.PageContent.page_id, desc(models.PageContent.created_at))
+        )
+        content_result = await db.execute(content_query)
+        for content in content_result.scalars().all():
+            latest_contents[content.page_id] = content
+
     items = []
     for page_obj, site_name in rows:
         page_detail = schemas.PageDetail.from_orm(page_obj)
         page_detail.site_name = site_name
         
-        # Manually fetch content using a separate query.
-        content_result = await db.execute(
-             select(models.PageContent)
-            .where(models.PageContent.page_id == page_obj.id)
-            .order_by(desc(models.PageContent.created_at))
-            .limit(1)
-        )
-        content = content_result.scalar_one_or_none()
+        content = latest_contents.get(page_obj.id)
         if content:
              page_detail.latest_content = schemas.PageContentRead.from_orm(content)
         

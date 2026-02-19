@@ -2,10 +2,10 @@ import uuid
 from datetime import datetime
 from enum import Enum
 from typing import Optional, Any
-from sqlalchemy import String, Boolean, Integer, ForeignKey, DateTime, Text, Enum as PgEnum
+from sqlalchemy import String, Boolean, Integer, ForeignKey, DateTime, Text, Enum as PgEnum, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, literal_column
 
 class Base(DeclarativeBase):
     pass
@@ -100,6 +100,15 @@ class Page(Base):
 
     site: Mapped["Site"] = relationship("Site", back_populates="pages")
     contents: Mapped[list["PageContent"]] = relationship("PageContent", back_populates="page")
+    
+    __table_args__ = (
+        Index(
+            "ix_pages_title_fts",
+            func.to_tsvector(literal_column("'spanish'"), title),
+            postgresql_using="gin",
+        ),
+        Index("ix_pages_published_at", published_at.desc()),
+    )
 
 class PageContent(Base):
     __tablename__ = "page_contents"
@@ -114,6 +123,15 @@ class PageContent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     page: Mapped["Page"] = relationship("Page", back_populates="contents")
+
+    __table_args__ = (
+        Index(
+            "ix_page_contents_text_fts",
+            func.to_tsvector(literal_column("'spanish'"), extracted_text),
+            postgresql_using="gin",
+        ),
+        Index("ix_page_contents_created_at", created_at.desc()),
+    )
 
 class ScrapeRun(Base):
     __tablename__ = "scrape_runs"

@@ -80,6 +80,7 @@ services:
       - PAGES_PER_RUN=${PAGES_PER_RUN:-200}
       - MAX_RETRIES=${MAX_RETRIES:-2}
       - REFRESH_EXISTING=${REFRESH_EXISTING:-true}
+      - SAVE_RAW_HTML=${SAVE_RAW_HTML:-false}
     depends_on:
       db:
         condition: service_healthy
