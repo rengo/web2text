@@ -27,6 +27,7 @@ async def get_new_feed(
     # Base conditions
     conditions = [
         models.Page.status == models.PageStatus.PROCESSED,
+        models.Site.deleted == False,
         or_(
             models.Page.scraped_at > since,
             models.Page.first_seen_at > since

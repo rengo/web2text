@@ -25,6 +25,7 @@ class SiteBase(BaseModel):
     name: str
     base_url: str
     enabled: bool = True
+    deleted: bool = False
     sitemap_url: Optional[str] = None
     rss_url: Optional[str] = None
     crawl_strategy: CrawlStrategy = CrawlStrategy.SITEMAP
@@ -38,6 +39,7 @@ class SiteCreate(SiteBase):
 class SiteUpdate(BaseModel):
     name: Optional[str] = None
     enabled: Optional[bool] = None
+    deleted: Optional[bool] = None
     sitemap_url: Optional[str] = None
     rss_url: Optional[str] = None
     rate_limit_ms: Optional[int] = None

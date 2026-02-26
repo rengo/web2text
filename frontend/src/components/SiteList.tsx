@@ -130,20 +130,20 @@ export default function SiteList() {
                 <table className="min-w-full divide-y divide-gray-100">
                     <thead className="bg-gray-50/50">
                         <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Name</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden lg:table-cell">ID</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden md:table-cell">URL</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden sm:table-cell">Strategy</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Indexed</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Pending</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</th>
+                            <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Name</th>
+                            <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden xl:table-cell">ID</th>
+                            <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden 2xl:table-cell">URL</th>
+                            <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden lg:table-cell">Strategy</th>
+                            <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Indexed</th>
+                            <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Pending</th>
+                            <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                            <th className="px-4 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
                         {sites.map(site => (
                             <tr key={site.id} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="flex items-center space-x-2">
                                         <span className="font-semibold text-gray-900">{site.name}</span>
                                         {site.config_warning && (
@@ -158,7 +158,7 @@ export default function SiteList() {
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
+                                <td className="px-4 py-4 whitespace-nowrap hidden xl:table-cell">
                                     <div className="flex items-center space-x-2">
                                         <code className="bg-gray-50 px-2 py-1 rounded text-xs text-gray-600 font-mono">{site.id.substring(0, 8)}...</code>
                                         <button
@@ -182,19 +182,19 @@ export default function SiteList() {
                                         </button>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-sm hidden md:table-cell">{site.base_url}</td>
-                                <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
-                                    <span className="bg-purple-50 text-purple-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                <td className="px-4 py-4 whitespace-nowrap text-gray-500 text-sm hidden 2xl:table-cell max-w-[200px] truncate">{site.base_url}</td>
+                                <td className="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
+                                    <span className="bg-purple-50 text-purple-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                                         {site.crawl_strategy}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">
+                                <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">
                                     {site.pages_count || 0}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-orange-600">
+                                <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-orange-600">
                                     {site.pending_count || 0}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-4 py-4 whitespace-nowrap">
                                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${site.enabled
                                         ? 'bg-green-50 text-green-700 border-green-100'
                                         : 'bg-red-50 text-red-700 border-red-100'
@@ -202,27 +202,61 @@ export default function SiteList() {
                                         {site.enabled ? 'Active' : 'Disabled'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right space-x-3">
+                                <td className="px-4 py-4 whitespace-nowrap text-right space-x-1 sm:space-x-3">
                                     <button
                                         onClick={() => openEdit(site)}
-                                        className="text-blue-600 hover:text-blue-700 font-bold text-sm"
+                                        className="text-blue-600 hover:text-blue-700 p-1.5"
                                         title="Edit Site"
                                     >
-                                        <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </button>
                                     <button
                                         onClick={() => handleToggle(site.id, site.enabled)}
-                                        className={`font-bold text-sm ${site.enabled ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
+                                        className={`p-1.5 transition-colors ${site.enabled ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
+                                        title={site.enabled ? 'Disable Site' : 'Enable Site'}
                                     >
-                                        {site.enabled ? 'Disable' : 'Enable'}
+                                        {site.enabled ? (
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                            </svg>
+                                        ) : (
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        )}
                                     </button>
                                     <button
                                         onClick={() => handleRun(site.id)}
-                                        className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors"
+                                        className="bg-gray-100 text-gray-700 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200 transition-colors hidden sm:inline-block"
                                     >
                                         Run
+                                    </button>
+                                    <button
+                                        onClick={() => handleRun(site.id)}
+                                        className="text-gray-600 hover:text-gray-900 p-1.5 sm:hidden"
+                                        title="Run Now"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (window.confirm(`Are you sure you want to delete ${site.name}?`)) {
+                                                const { deleteSite } = await import('../api');
+                                                await deleteSite(site.id);
+                                                load();
+                                            }
+                                        }}
+                                        className="text-red-500 hover:text-red-700 p-1.5"
+                                        title="Delete Site"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
                                     </button>
                                 </td>
                             </tr>

@@ -95,6 +95,12 @@ export async function toggleSite(id: string, enabled: boolean) {
     return updateSite(id, { enabled });
 }
 
+export async function deleteSite(id: string) {
+    return request(`/sites/${id}`, {
+        method: 'DELETE'
+    });
+}
+
 export async function fetchSettings() {
     const res = await request('/settings/');
     return res.json();

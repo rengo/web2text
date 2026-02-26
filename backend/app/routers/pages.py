@@ -21,7 +21,7 @@ async def read_pages(
     limit: int = 100,
     db: AsyncSession = Depends(database.get_db)
 ):
-    query = select(models.Page)
+    query = select(models.Page).join(models.Site).where(models.Site.deleted == False)
     
     if site_id:
         query = query.where(models.Page.site_id == site_id)

@@ -27,6 +27,7 @@ async def read_sites(skip: int = 0, limit: int = 100, db: AsyncSession = Depends
             func.count(models.Page.id).filter(models.Page.status == models.PageStatus.NEW).label("pending_count")
         )
         .outerjoin(models.Page, models.Site.id == models.Page.site_id)
+        .where(models.Site.deleted == False)
         .group_by(models.Site.id)
         .offset(skip).limit(limit)
     )
@@ -83,3 +84,14 @@ async def run_site_scrape(site_id: UUID, db: AsyncSession = Depends(database.get
     await db.commit()
 
     return {"message": f"Scrape triggered for site {site.name}"}
+
+@router.delete("/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_site(site_id: UUID, db: AsyncSession = Depends(database.get_db)):
+    result = await db.execute(select(models.Site).where(models.Site.id == site_id))
+    db_site = result.scalar_one_or_none()
+    if not db_site:
+        raise HTTPException(status_code=404, detail="Site not found")
+    
+    db_site.deleted = True
+    await db.commit()
+    return None

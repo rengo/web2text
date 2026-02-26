@@ -67,8 +67,8 @@ async def scrape_job():
     
     try:
         async with database.AsyncSessionLocal() as db:
-            # Get enabled sites
-            result = await db.execute(select(models.Site).where(models.Site.enabled == True))
+            # Get enabled and not deleted sites
+            result = await db.execute(select(models.Site).where(models.Site.enabled == True, models.Site.deleted == False))
             sites = result.scalars().all()
             
             if not sites:
@@ -90,7 +90,7 @@ async def run_manual_scrape(site_id: str):
     await remote_logger.log(f"Manual scrape triggered for site {site_id}", level="info")
     
     async with database.AsyncSessionLocal() as db:
-        result = await db.execute(select(models.Site).where(models.Site.id == site_id))
+        result = await db.execute(select(models.Site).where(models.Site.id == site_id, models.Site.deleted == False))
         site = result.scalar_one_or_none()
         
         if not site:

@@ -53,6 +53,7 @@ class Site(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     base_url: Mapped[str] = mapped_column(String, nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     sitemap_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     rss_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     
