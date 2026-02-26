@@ -29,7 +29,7 @@ clean-db:
 	docker compose exec db psql -U postgres -d web2text -c "TRUNCATE pages, page_contents, scrape_runs CASCADE;"
 
 clean-site:
-	docker compose exec backend python3 backend/scripts/clean_site_data.py $(id)
+	docker compose exec backend python3 backend/scripts/clean_site_data.py $(filter-out $@,$(MAKECMDGOALS))
 	
 # Production
 prod-up:
@@ -41,8 +41,9 @@ prod-down:
 prod-logs:
 	docker compose -f docker-compose.prod.yml logs -f
 
-prod-clean-db:
-	docker compose -f docker-compose.prod.yml exec db psql -U postgres -d web2text -c "TRUNCATE pages, page_contents, scrape_runs CASCADE;"
-
 prod-clean-site:
-	docker compose -f docker-compose.prod.yml exec backend python3 backend/scripts/clean_site_data.py $(id)
+	docker compose -f docker-compose.prod.yml exec backend python3 backend/scripts/clean_site_data.py $(filter-out $@,$(MAKECMDGOALS))
+
+# This allows passing arguments after target
+%:
+	@:

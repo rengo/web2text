@@ -12,6 +12,7 @@ import { checkAuth, logout } from './api';
 function App() {
     const location = useLocation();
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const authChecked = useRef(false);
 
@@ -23,6 +24,11 @@ function App() {
             setIsAuthenticated(!!user);
         });
     }, []);
+
+    // Close sidebar on navigation
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [location.pathname]);
 
     if (isAuthenticated === null) {
         return null; // Loading state
@@ -58,16 +64,26 @@ function App() {
 
     return (
         <div className="flex min-h-screen bg-[#F8FAFC]">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col min-w-0">
-                <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 px-8 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-                            {details.title}
-                        </h2>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
-                            {details.subtitle}
-                        </p>
+                <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button
+                            className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                            onClick={() => setIsSidebarOpen(true)}
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                                {details.title}
+                            </h2>
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
+                                {details.subtitle}
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -91,7 +107,7 @@ function App() {
                     </div>
                 </header>
 
-                <main className="flex-1 p-8 overflow-y-auto">
+                <main className="flex-1 p-4 md:p-8 overflow-y-auto">
                     <div className="max-w-7xl mx-auto">
                         <Routes>
                             <Route path="/" element={<Navigate to="/feed" replace />} />
@@ -105,7 +121,7 @@ function App() {
                     </div>
                 </main>
 
-                <footer className="px-8 py-4 bg-white border-t border-slate-100 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <footer className="px-4 md:px-8 py-4 bg-white border-t border-slate-100 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <span>© 2026 Web2Text Scraper</span>
                     <div className="flex gap-6">
                         <a href="#" className="hover:text-blue-500 transition-colors">Documentation</a>

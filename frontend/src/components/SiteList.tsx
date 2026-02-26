@@ -72,7 +72,7 @@ export default function SiteList() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900">Configured Sites</h2>
                     <p className="text-gray-500 text-sm mt-1">Manage the websites to be scraped and their discovery settings.</p>
@@ -89,7 +89,7 @@ export default function SiteList() {
             </div>
 
             {showForm && (
-                <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="bg-white p-4 md:p-8 rounded-2xl shadow-lg border border-gray-100 animate-in fade-in slide-in-from-top-4 duration-300">
                     <h3 className="text-lg font-bold mb-6 text-gray-800">New Site Configuration</h3>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -126,15 +126,15 @@ export default function SiteList() {
                 </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-100">
                     <thead className="bg-gray-50/50">
                         <tr>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Name</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">ID</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">URL</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Strategy</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Indexed Pages</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden lg:table-cell">ID</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden md:table-cell">URL</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest hidden sm:table-cell">Strategy</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Indexed</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Pending</th>
                             <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
                             <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</th>
@@ -158,7 +158,7 @@ export default function SiteList() {
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
                                     <div className="flex items-center space-x-2">
                                         <code className="bg-gray-50 px-2 py-1 rounded text-xs text-gray-600 font-mono">{site.id.substring(0, 8)}...</code>
                                         <button
@@ -182,8 +182,8 @@ export default function SiteList() {
                                         </button>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-sm">{site.base_url}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-sm hidden md:table-cell">{site.base_url}</td>
+                                <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                                     <span className="bg-purple-50 text-purple-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                         {site.crawl_strategy}
                                     </span>
