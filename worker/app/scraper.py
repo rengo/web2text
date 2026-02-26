@@ -35,13 +35,16 @@ class ScraperEngine:
 
     def _is_valid_article(self, html: str) -> bool:
         """
-        Parses HTML for JSON-LD and checks if @type is NewsArticle, Article, BlogPosting, or Report.
-        Returns True if a valid article type is found, False otherwise.
+        Validates if the page is a relevant article.
+        Checks for:
+        1. JSON-LD (@type in [NewsArticle, Article, BlogPosting, Report])
+        2. OpenGraph/Meta tags (og:type == 'article')
         """
         try:
             soup = BeautifulSoup(html, 'html.parser')
-            scripts = soup.find_all('script', type='application/ld+json')
             
+            # 1. JSON-LD Check
+            scripts = soup.find_all('script', type='application/ld+json')
             valid_types = {'NewsArticle', 'Article', 'BlogPosting', 'Report'}
             
             for script in scripts:
@@ -72,10 +75,21 @@ class ScraperEngine:
                                     return True
                 except json.JSONDecodeError:
                     continue
-                    
+            
+            # 2. OpenGraph / Meta Check (Fallback for Sites like Boletin Oficial)
+            # Check og:type
+            og_type = soup.find('meta', property='og:type') or soup.find('meta', attrs={'name': 'og:type'})
+            if og_type and og_type.get('content', '').lower() == 'article':
+                return True
+                
+            # Check standard meta tags or twitter tags
+            twitter_type = soup.find('meta', name='twitter:card')
+            if twitter_type and twitter_type.get('content', '').lower() == 'article':
+                return True
+
             return False
         except Exception as e:
-            logger.error(f"Error validating article JSON-LD: {e}")
+            logger.error(f"Error validating article: {e}")
             return False
 
 
