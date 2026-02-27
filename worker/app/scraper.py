@@ -143,10 +143,10 @@ class ScraperEngine:
             )
 
         # --- CAP DISCOVERY ---
-        if len(discovered_urls) > 1000:
-            logger.info(f"Site {site.name}: Capping discovery from {len(discovered_urls)} to 1000 URLs")
-            await remote_logger.log(f"Capping discovery to 1000 URLs (found {len(discovered_urls)})", level="warning", extra={"site_id": site.id})
-            discovered_urls = discovered_urls[:1000]
+        if len(discovered_urls) > 3000:
+            logger.info(f"Site {site.name}: Capping discovery from {len(discovered_urls)} to 3000 URLs")
+            await remote_logger.log(f"Capping discovery to 3000 URLs (found {len(discovered_urls)})", level="warning", extra={"site_id": site.id})
+            discovered_urls = discovered_urls[:3000]
         # ----------------------
 
         logger.info(f"Site {site.name}: Upserting {len(discovered_urls)} URLs")

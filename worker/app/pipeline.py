@@ -35,26 +35,27 @@ class DiscoveryPipeline:
 
     async def run(self, site: Site, lookback_days: int = 30) -> List[str]:
         urls = set()
+        sitemaps_to_check = []
         
-        # 0. Auto-discover sitemap if missing
-        if not site.sitemap_url:
-            logger.info(f"Sitemap URL missing for {site.name}, attempting auto-discovery...")
-            discovered_sitemap = await self._discover_sitemap(site.base_url)
-            if discovered_sitemap:
-                logger.info(f"Discovered sitemap for {site.name}: {discovered_sitemap}")
-                site.sitemap_url = discovered_sitemap
-                # Note: We don't save to DB here as 'site' is often a detached or temporary object 
-                # depending on how the caller handles sessions, but it will be used for this run.
+        # 0. Auto-discover sitemaps
+        discovered = await self._discover_sitemaps(site.base_url)
+        if discovered:
+            sitemaps_to_check.extend(discovered)
+            if not site.sitemap_url:
+                logger.info(f"Using discovered sitemap for {site.name}: {discovered[0]}")
+                site.sitemap_url = discovered[0]
         
+        # Also check explicit sitemap_url if it's not in the discovered list
+        if site.sitemap_url and site.sitemap_url not in sitemaps_to_check:
+            sitemaps_to_check.append(site.sitemap_url)
+
         # 1. Sitemap Strategy
-        if site.sitemap_url:
-            logger.info(f"Trying sitemap for {site.name}: {site.sitemap_url}")
-            sitemap_urls = await self._fetch_sitemap(site.sitemap_url, lookback_days)
-            if sitemap_urls:
-                logger.info(f"Found {len(sitemap_urls)} URLs via sitemap")
-                urls.update(sitemap_urls)
-            else:
-                logger.warning(f"Sitemap failed or empty for {site.name}")
+        for sm_url in sitemaps_to_check:
+            logger.info(f"Trying sitemap for {site.name}: {sm_url}")
+            s_urls = await self._fetch_sitemap(sm_url, lookback_days)
+            if s_urls:
+                logger.info(f"Found {len(s_urls)} URLs via sitemap {sm_url}")
+                urls.update(s_urls)
 
         # 2. RSS Strategy
         if site.rss_url:
@@ -70,10 +71,30 @@ class DiscoveryPipeline:
         link_urls = await self._fetch_links(site.base_url)
         urls.update(link_urls)
         
-        return list(urls)
+        # Convert to list and filter/prioritize
+        res_urls = list(urls)
+        
+        # Prioritize URLs from "important" sections if they exist in the set
+        # This helps when we cap at 1000 in the scraper
+        def url_priority(url):
+            low_priority = ["/clima/", "/loterias/", "/quiniela/", "/horoscopo/", "/avisos-funebres/"]
+            high_priority = ["/economia/", "/politica/", "/negocios/", "/el-mundo/", "/sociedad/"]
+            
+            for pattern in low_priority:
+                if pattern in url.lower():
+                    return 10
+            for pattern in high_priority:
+                if pattern in url.lower():
+                    return -1
+            return 0
 
-    async def _discover_sitemap(self, base_url: str) -> Optional[str]:
-        """Attempts to find a sitemap by checking robots.txt and common paths."""
+        res_urls.sort(key=url_priority)
+        
+        return res_urls
+
+    async def _discover_sitemaps(self, base_url: str) -> List[str]:
+        """Attempts to find all sitemaps by checking robots.txt and common paths."""
+        found_sitemaps = []
         # 1. Try robots.txt
         try:
             robots_url = str(httpx.URL(base_url).join("robots.txt"))
@@ -81,30 +102,37 @@ class DiscoveryPipeline:
             if resp.status_code == 200:
                 import re
                 matches = re.findall(r'^Sitemap:\s*(.*)$', resp.text, re.MULTILINE | re.IGNORECASE)
-                if matches:
-                    # Return the first one found
-                    logger.info(f"Sitemap found in robots.txt: {matches[0].strip()}")
-                    return matches[0].strip()
+                for match in matches:
+                    url = match.strip()
+                    if url not in found_sitemaps:
+                        found_sitemaps.append(url)
+                        logger.info(f"Sitemap found in robots.txt: {url}")
         except Exception as e:
             logger.debug(f"Error checking robots.txt for {base_url}: {e}")
 
-        # 2. Try common paths
-        common_paths = ["sitemap.xml", "sitemap_index.xml", "sitemap/"]
-        for path in common_paths:
-            url = str(httpx.URL(base_url).join(path))
-            try:
-                # Use HEAD first for efficiency
-                resp = await self.client.head(url, timeout=5.0)
-                if resp.status_code == 200 and "xml" in resp.headers.get("content-type", "").lower():
-                    return url
-                
-                # Some servers block HEAD or return wrong content-type, try GET
-                resp = await self.client.get(url, timeout=5.0)
-                if resp.status_code == 200 and ("<urlset" in resp.text or "<sitemapindex" in resp.text):
-                    return url
-            except Exception:
-                continue
-        return None
+        # 2. Try common paths if nothing found
+        if not found_sitemaps:
+            common_paths = ["sitemap.xml", "sitemap_index.xml", "sitemap/"]
+            for path in common_paths:
+                url = str(httpx.URL(base_url).join(path))
+                try:
+                    # Use HEAD first for efficiency
+                    resp = await self.client.head(url, timeout=5.0)
+                    if resp.status_code == 200 and "xml" in resp.headers.get("content-type", "").lower():
+                        found_sitemaps.append(url)
+                        continue
+                    
+                    # Some servers block HEAD or return wrong content-type, try GET
+                    resp = await self.client.get(url, timeout=5.0)
+                    if resp.status_code == 200 and ("<urlset" in resp.text or "<sitemapindex" in resp.text):
+                        found_sitemaps.append(url)
+                except Exception:
+                    continue
+        
+        # Prioritize sitemaps with "news" in the name
+        found_sitemaps.sort(key=lambda x: 0 if "news" in x.lower() else 1)
+        
+        return found_sitemaps
 
     async def _fetch_sitemap(self, url: str, lookback_days: int) -> Set[str]:
         # Minimal sitemap parser (handles sitemap index recursively 1 level)
