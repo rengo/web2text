@@ -10,8 +10,19 @@ import json
 import asyncpg
 from shared.core.database import DATABASE_URL
 
-logging.basicConfig(level=logging.INFO)
+# Configure logging
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=LOG_LEVEL,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger("worker")
+
+# Silence noisy libraries
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("apscheduler").setLevel(logging.WARNING)
+# Ensure scraper is also controlled by global level but can be specifically tuned if needed
+# logging.getLogger("worker.app.scraper").setLevel(LOG_LEVEL)
 
 scheduler = AsyncIOScheduler()
 scraper = ScraperEngine()

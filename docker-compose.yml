@@ -33,6 +33,7 @@ services:
       - SCRAPE_INTERVAL_SECONDS=600
       - USE_PLAYWRIGHT=false
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3010,http://localhost:3011
+      - LOG_LEVEL=INFO
     ports:
       - "9000:9000"
     depends_on:
@@ -59,6 +60,7 @@ services:
       - MAX_RETRIES=2
       - REFRESH_EXISTING=true
       - SAVE_RAW_HTML=false
+      - LOG_LEVEL=INFO
     depends_on:
       db:
         condition: service_healthy

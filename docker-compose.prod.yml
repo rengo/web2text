@@ -55,6 +55,7 @@ services:
       - VIRTUAL_PORT=9000
       # CORS
       - ALLOWED_ORIGINS=https://${DOMAIN_FRONTEND:-web2text.rengo.run},http://localhost:5173,http://localhost:3010,http://localhost:3011
+      - LOG_LEVEL=${LOG_LEVEL:-WARNING}
     depends_on:
       db:
         condition: service_healthy
@@ -81,6 +82,7 @@ services:
       - MAX_RETRIES=${MAX_RETRIES:-2}
       - REFRESH_EXISTING=${REFRESH_EXISTING:-true}
       - SAVE_RAW_HTML=${SAVE_RAW_HTML:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-WARNING}
     depends_on:
       db:
         condition: service_healthy

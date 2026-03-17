@@ -8,8 +8,15 @@ import logging
 from shared.core.database import DATABASE_URL
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=LOG_LEVEL,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger("backend")
+
+# Silence noisy libraries
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 app = FastAPI(title="Web2Text Scraper API")
 
