@@ -1,0 +1,52 @@
+# Optimized production Dockerfile for all Python services
+FROM python:3.11-slim AS builder
+
+# Prevent debconf warnings
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Essential build dependencies for lxml and asyncpg
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    libxml2-dev \
+    libxslt-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Copy and install combined requirements
+# Installing separately to leverage layer caching if one file changes but not the other
+COPY backend/requirements.txt ./backend_requirements.txt
+COPY worker/requirements.txt ./worker_requirements.txt
+
+RUN pip install --no-cache-dir --user -r backend_requirements.txt && \
+    pip install --no-cache-dir --user -r worker_requirements.txt
+
+# Final stage
+FROM python:3.11-slim
+WORKDIR /app
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Runtime libraries only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    libxml2 \
+    libxslt1.1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed packages from builder
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
+
+# Copy all source code (including shared)
+# We copy them at the end to avoid invalidating the dependency layer on every code change
+COPY shared /app/shared
+COPY backend /app/backend
+COPY worker /app/worker
+
+# Overridden in docker-compose
+CMD ["python3"]
