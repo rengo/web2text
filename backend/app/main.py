@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routers import sites, pages, feed, settings, auth
@@ -20,9 +21,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 app = FastAPI(title="Web2Text Scraper API")
 
-import os
 
-# ...
 
 app.add_middleware(
     CORSMiddleware,
