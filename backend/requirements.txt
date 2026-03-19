@@ -10,4 +10,5 @@ httpx
 python-multipart
 websockets
 passlib[bcrypt]
+bcrypt==3.1.7
 python-jose[cryptography]
