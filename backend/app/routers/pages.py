@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
@@ -36,7 +36,9 @@ async def read_pages(
     if q:
         query = query.where(models.Page.title.ilike(f"%{q}%"))
         
-    query = query.order_by(desc(models.Page.published_at)).limit(limit)
+    query = query.order_by(
+        desc(func.coalesce(models.Page.published_at, models.Page.scraped_at, models.Page.first_seen_at))
+    ).limit(limit)
     
     result = await db.execute(query)
     return result.scalars().all()
