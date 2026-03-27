@@ -90,6 +90,7 @@ services:
         condition: service_completed_successfully
     networks:
       - default
+    command: python3 -m worker.app.main
 
   frontend:
     build:
