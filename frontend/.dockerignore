@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+*.log
+log
+logs
+env
+.env
+.env.*
+Dockerfile
+Dockerfile.prod
